@@ -34,13 +34,11 @@ class LogFile(BinaryFile):
 class BufferFile(FSItem):
   def __init__(self, fileName : str) -> None:
     self.__buffer = queue.Queue()
-    self.__usedStorage = 0;
     super().__init__(fileName)
 
   def push(self, element :str) -> bool:
-    if (self.__usedStorage + len(element)) < constants.MAX_BUF_FILE_SIZE:
+    if (self.__buffer.qsize() + 1) < constants.MAX_BUF_FILE_SIZE:
       self.__buffer.put(element)
-      self.__usedStorage += len(element)
       return True
     else:
       return False
@@ -50,7 +48,6 @@ class BufferFile(FSItem):
       return None
     else:
       element = self.__buffer.get()
-      self.__usedStorage -= len(element)
       return element
 
 
