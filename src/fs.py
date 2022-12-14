@@ -1,4 +1,4 @@
-import queue
+from queue import Queue
 import constants
 
 
@@ -28,12 +28,15 @@ class LogFile(BinaryFile):
     super().__init__(fileName, fileContent)
 
   def append(self, line) -> None:
-    self._content += f"\n{line}"
+    if len(self._content) == 0:
+      self._content += line
+    else:
+      self._content += f"\n{line}"
 
 
 class BufferFile(FSItem):
   def __init__(self, fileName : str) -> None:
-    self.__buffer = queue.Queue()
+    self.__buffer = Queue()
     super().__init__(fileName)
 
   def push(self, element :str) -> bool:
@@ -49,6 +52,9 @@ class BufferFile(FSItem):
     else:
       element = self.__buffer.get()
       return element
+
+  def get_elements(self):
+    return list(self.__buffer.queue)
 
 
 class Directory(FSItem):
@@ -104,7 +110,10 @@ class FileSystem:
   def getRoot(self) -> Directory:
     return self.__root
 
-  def addItem(self, item, path : str) -> bool:
+  def addItem(self, item, path: str) -> bool:
+    if '/' in item.getName():
+      return False
+
     itemDir = self.findDir(path)
     if itemDir == None or item == None:
       return False
@@ -133,8 +142,16 @@ class FileSystem:
     if item == None :
       return False
 
-    return itemDir.addItem(item)
-    
+    if itemDir.addItem(item):
+      return True
+    else:
+      pathList = itemPath.split('/')
+      pathList.pop()
+      fileDirPath = '/'.join(pathList)
+      fileDir = self.findDir(fileDirPath)
+      fileDir.addItem(item)
+      return False
+
   def __getItemFromDir(self, itemPath : str) -> FSItem:
     pathList = itemPath.split('/')
     itemName = pathList.pop()
@@ -145,6 +162,11 @@ class FileSystem:
 
   def findDir(self, path: str) -> Directory:
     folders = path.split('/')
+    folders = list(filter(lambda item: item != '', folders))
+
+    if len(folders) == 0:
+      return None
+
     rootName = folders.pop(0)
 
     if self.__root.getName() != rootName:
@@ -159,3 +181,14 @@ class FileSystem:
       searchedDir = subDir
     
     return searchedDir
+
+  def findFile(self, filePath: str):
+    pathList = filePath.split('/')
+    fileName = pathList.pop()
+    fileDirPath = '/'.join(pathList)
+    fileDir = self.findDir(fileDirPath)
+
+    if fileDir is None:
+      return None
+
+    return fileDir.getItemByName(fileName)
