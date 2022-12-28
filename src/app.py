@@ -6,14 +6,10 @@ app = Flask(__name__)
 client = app.test_client()
 fs = FileSystem()
 
-# fs.addItem(Directory('subroot1'), 'root')
-# fs.addItem(Directory('subroot2'), 'root')
-# b = BufferFile('buff')
-# b.push('sdsd')
-# b.push('dfgkjdfg')
-# b.push('sdfsdfh')
-# fs.addItem(BinaryFile('binFile', "dsdfksdbf"), 'root')
-# fs.addItem(b, 'root')
+
+@app.get("/version")
+def get_version():
+    return '1.0'
 
 
 @app.get("/directory/<path:directory_path>")
@@ -61,10 +57,10 @@ def get_binary_file(file_path):
 def delete_directory(directory_path):
     directory = fs.findDir(directory_path)
 
-    if directory is None or directory is not Directory:
+    if directory is None or type(directory) is not Directory:
         return {'error_message': 'Directory not found'}, 400
 
-    is_removed = fs.removeItem(directory)
+    is_removed = fs.removeItem(directory_path)
 
     if is_removed:
         return {'success': True}
@@ -74,47 +70,35 @@ def delete_directory(directory_path):
 
 @app.delete("/binaryfile/<path:file_path>")
 def delete_binaryfile(file_path):
-    bin_file = fs.findDir(file_path)
+    bin_file = fs.findFile(file_path)
 
-    if bin_file is None or bin_file is not BinaryFile:
+    if bin_file is None or type(bin_file) is not BinaryFile:
         return {'error_message': 'BinaryFile not found'}, 400
 
-    fs.removeItem(bin_file)
+    fs.removeItem(file_path)
     return {'success': True}
 
 
 @app.delete("/logfile/<path:file_path>")
 def delete_logfile(file_path):
-    log_file = fs.findDir(file_path)
+    log_file = fs.findFile(file_path)
 
-    if log_file is None or log_file is not LogFile:
+    if log_file is None or type(log_file) is not LogFile:
         return {'error_message': 'LogFile not found'}, 400
 
-    fs.removeItem(log_file)
+    fs.removeItem(file_path)
     return {'success': True}
 
 
 @app.delete("/bufferfile/<path:file_path>")
 def delete_bufferfile(file_path):
-    buffer_file = fs.findDir(file_path)
+    buffer_file = fs.findFile(file_path)
 
-    if buffer_file is None or buffer_file is not BufferFile:
-        return {'error_message': 'LogFile not found'}, 400
+    if buffer_file is None or type(buffer_file) is not BufferFile:
+        return {'error_message': 'BufferFile not found'}, 400
 
-    fs.removeItem(buffer_file)
+    fs.removeItem(file_path)
     return {'success': True}
-
-
-# @app.get("/file/<path:file_path>")
-# def get_file(file_path):
-#     file = fs.findFile(file_path)
-#
-#     if file is None or file.isDir():
-#         return {'error_message': 'File not found'}, 400
-#
-#     file_data = get_file_data(file)
-#     s = 'df'
-#     return jsonify(file_data)
 
 
 @app.post("/directory/")
@@ -128,7 +112,7 @@ def create_directory():
     if is_created:
         return {'success': True}
     else:
-        return {'error_message': 'Item with such name already exists'}, 400
+        return {'error_message': 'Directory creation failed'}, 400
 
 
 @app.post("/bufferfile/")
@@ -142,7 +126,7 @@ def create_bufferfile():
     if is_created:
         return {'success': True}
     else:
-        return {'error_message': 'Item with such name already exists'}, 400
+        return {'error_message': 'File creation failed'}, 400
 
 
 @app.post("/logfile/")
@@ -156,7 +140,7 @@ def create_logfile():
     if is_created:
         return {'success': True}
     else:
-        return {'error_message': 'Item with such name already exists'}, 400
+        return {'error_message': 'File creation failed'}, 400
 
 
 @app.post("/binaryfile/")
@@ -171,7 +155,7 @@ def create_binaryfile():
     if is_created:
         return {'success': True}
     else:
-        return {'error_message': 'Item with such name already exists'}, 400
+        return {'error_message': 'File creation failed'}, 400
 
 
 @app.post("/logfile/log")
@@ -266,7 +250,7 @@ def move_directory():
     directory = fs.findDir(directory_path)
 
     if directory is None or type(directory) is not Directory:
-        return {'error_message': 'File not found'}, 400
+        return {'error_message': 'Directory not found'}, 400
 
     is_moved = fs.moveItem(directory_path, destination_path)
 
@@ -315,4 +299,4 @@ def move_binaryfile():
 
 
 if __name__ == '__main__':
-    app.run()
+    app.run(host='0.0.0.0')
