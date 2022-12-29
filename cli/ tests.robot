@@ -165,7 +165,20 @@ Get Binary File Content Not From File Content
     ${json}=   Convert String to JSON  ${result.stdout}
     should be equal as strings  ${json['error_message']}    File not found
 
-Get Binary File Content From File Type
+Get Binary File Content From Wrong File Type
     ${result}=     RUN PROCESS  python3    app.py  bin-get  root/buff1
+    ${json}=   Convert String to JSON  ${result.stdout}
+    should be equal as strings  ${json['error_message']}    File not found
+
+Get Buffer File Content
+    RUN PROCESS  python3    app.py  buff-push   root/buff1  element
+    RUN PROCESS  python3    app.py  buff-push   root/buff1  element
+    ${result}=     RUN PROCESS  python3    app.py  buff-get  root/buff1
+    ${json}=   Convert String to JSON  ${result.stdout}
+    ${count}=   Get length  ${json['file_content']}
+    should be equal as integers  ${count}   2
+
+Get Buffer File ContentNot From Buffer File
+    ${result}=     RUN PROCESS  python3    app.py  buff-get  root/dir1
     ${json}=   Convert String to JSON  ${result.stdout}
     should be equal as strings  ${json['error_message']}    File not found
