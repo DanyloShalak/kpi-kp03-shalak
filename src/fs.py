@@ -183,6 +183,9 @@ class FileSystem:
     return searchedDir
 
   def findFile(self, filePath: str):
+    if filePath is None:
+      return None
+
     pathList = filePath.split('/')
     fileName = pathList.pop()
     fileDirPath = '/'.join(pathList)
